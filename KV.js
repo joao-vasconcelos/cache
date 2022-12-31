@@ -23,8 +23,9 @@ module.exports =
         maxlength: 5000000,
       },
       storedAt: {
-        type: Number,
-        maxlength: 100,
+        type: Date,
+        expires: 30,
+        default: Date.now,
       },
     })
   );

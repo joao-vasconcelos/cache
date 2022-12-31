@@ -5,8 +5,6 @@
 /* * */
 /* * */
 
-const CACHE_TTL_IN_SECONDS = 10;
-
 /* * */
 /* IMPORTS */
 const express = require('express');
@@ -14,30 +12,53 @@ const app = express();
 const database = require('./database');
 const KV = require('./KV');
 
-app.get('/*', async (req, res) => {
+app.get('/admin-ajax.php', async (req, res) => {
   //
 
-  // Get cache object from query
-  const cachedObject = await KV.findOne({ key: req.originalUrl });
+  // Filter bad characters
+  for (let key in req.query) {
+    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%:-]/g, '');
+  }
 
-  if (cachedObject && cachedObject.storedAt + CACHE_TTL_IN_SECONDS * 1000 > Date.now()) {
+  res.set({
+    'Content-Type': 'application/json',
+    'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:",
+    'Access-Control-Allow-Origin': '*',
+    'X-Frame-Options': 'SAMEORIGIN',
+    'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubdomains; preload',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Robots-Tag': 'noindex',
+  });
+
+  const cacheKey = new URLSearchParams(req.query).toString();
+
+  // Get cache object from query
+  const cachedObject = await KV.findOne({ key: cacheKey });
+
+  if (cachedObject) {
     // If object is in cache
     console.log('Sending cached value');
+    res.append('X-Ricky-Cache', 'hit');
     res.send(cachedObject.value);
   } else {
     // fetch the API
-    const response = await fetch('https://teste.carrismetropolitana.pt' + req.originalUrl, {
+    const response = await fetch('https://teste.carrismetropolitana.pt/wp-admin/admin-ajax.php?' + cacheKey, {
       headers: {
         'content-type': 'application/json;charset=UTF-8',
       },
     });
-    const body = await response.text();
+
+    let body = await response.json();
+    delete body.sql;
+    body = JSON.stringify(body);
 
     // Save to cache
-    await KV.findOneAndUpdate({ key: req.originalUrl }, { value: body, storedAt: Date.now() }, { upsert: true });
+    await KV.findOneAndUpdate({ key: cacheKey }, { value: body }, { upsert: true });
 
     // return the response
     console.log('Sending fresh value');
+    res.append('X-Ricky-Cache', 'miss');
     res.send(body);
   }
 });
