@@ -11,7 +11,6 @@ const CACHE_TTL_IN_SECONDS = 10;
 /* IMPORTS */
 const express = require('express');
 const app = express();
-const port = 3000;
 const database = require('./database');
 const KV = require('./KV');
 
@@ -43,7 +42,9 @@ app.get('/*', async (req, res) => {
   }
 });
 
-app.listen(port, async () => {
-  console.log(`Example app listening on port ${port}`);
+// set port, listen for requests
+const PORT = process.env.NODE_DOCKER_PORT || 5050;
+app.listen(PORT, async () => {
+  console.log(`Example app listening on port ${PORT}`);
   await database.connect();
 });
