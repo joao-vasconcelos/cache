@@ -1,14 +1,24 @@
 volumes:
-  mongo-cache:
+  cache-volume:
 
 services:
-  mongo-cache-db:
+  mongodb:
     image: mongo
     restart: always
     ports:
       - '27017:27017'
     volumes:
-      - 'mongo-cache:/data/db'
+      - 'cache-volume:/data/db'
     environment:
       MONGO_INITDB_ROOT_USERNAME: dbuser
       MONGO_INITDB_ROOT_PASSWORD: dbpassword
+  server:
+    depends_on:
+      - mongodb
+    build: ./
+    image: cache:latest
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      MONGODB_CONNECTION_STRING: 'mongodb://dbuser:dbpassword@localhost:27017/cache?retryWrites=true&w=majority'
