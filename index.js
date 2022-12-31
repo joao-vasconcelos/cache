@@ -5,64 +5,45 @@
 /* * */
 /* * */
 
+const CACHE_TTL_IN_SECONDS = 10;
+
 /* * */
 /* IMPORTS */
-require('dotenv').config();
-const database = require('./services/database');
-const Transaction = require('./models/Transaction');
+const express = require('express');
+const app = express();
+const port = 3000;
+const database = require('./database');
+const KV = require('./KV');
 
-(async () => {
-  console.log();
-  console.log('-----------------------------------------');
-  console.log(new Date().toISOString());
-  console.log('-----------------------------------------');
-  console.log();
+app.get('/*', async (req, res) => {
+  //
 
-  // Store start time for logging purposes
-  const startTime = process.hrtime();
+  // Get cache object from query
+  const cachedObject = await KV.findOne({ key: req.originalUrl });
 
-  console.log('Starting...');
+  if (cachedObject && cachedObject.storedAt + CACHE_TTL_IN_SECONDS * 1000 > Date.now()) {
+    // If object is in cache
+    console.log('Sending cached value');
+    res.send(cachedObject.value);
+  } else {
+    // fetch the API
+    const response = await fetch('https://teste.carrismetropolitana.pt' + req.originalUrl, {
+      headers: {
+        'content-type': 'application/json;charset=UTF-8',
+      },
+    });
+    const body = await response.text();
 
-  await database.connect();
+    // Save to cache
+    await KV.findOneAndUpdate({ key: req.originalUrl }, { value: body, storedAt: Date.now() }, { upsert: true });
 
-  // Get all transactions
-  const transactions = await Transaction.find({});
-
-  // If response is empty,
-  // no new transactions to control
-  if (!transactions.length) console.log('Found 0 transactions.');
-  else console.log(`Preparing ${transactions.length} transactions...`);
-
-  let transactionCounter = 0;
-
-  // For each transaction
-  for (const t of transactions) {
-    transactionCounter++;
-    process.stdout.write(`Modified transaction ${transactionCounter} of ${transactions.length} [_id: ${t._id}]\r`);
+    // return the response
+    console.log('Sending fresh value');
+    res.send(body);
   }
+});
 
-  // Clear console line
-  process.stdout.write('                                                                                       \r');
-  console.log('Done.');
-
-  await database.disconnect();
-
-  console.log();
-  console.log('- - - - - - - - - - - - - - - - - - - - -');
-  console.log('Updated ' + transactionCounter + ' out of ' + transactions.length + ' transactions.');
-  console.log('Operation took ' + getDuration(startTime) / 1000 + ' seconds.');
-  console.log('- - - - - - - - - - - - - - - - - - - - -');
-  console.log();
-})();
-
-/* * */
-/* Returns a time interval for a provided start time. */
-const getDuration = (startTime) => {
-  const interval = process.hrtime(startTime);
-  return parseInt(
-    // seconds -> miliseconds +
-    interval[0] * 1000 +
-      // + nanoseconds -> miliseconds
-      interval[1] / 1000000
-  );
-};
+app.listen(port, async () => {
+  console.log(`Example app listening on port ${port}`);
+  await database.connect();
+});

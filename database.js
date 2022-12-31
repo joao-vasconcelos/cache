@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 
 exports.connect = async function () {
   await mongoose
+    .set('strictQuery', true)
     .connect(process.env.MONGODB_CONNECTION_STRING)
     .then(() => console.log('Connected to MongoDB.'))
     .catch((error) => {
