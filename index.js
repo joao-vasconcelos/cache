@@ -38,7 +38,6 @@ app.get('/admin-ajax.php', async (req, res) => {
 
   if (cachedObject) {
     // If object is in cache
-    console.log('Sending cached value');
     res.append('X-Ricky-Cache', 'hit');
     res.send(cachedObject.value);
   } else {
@@ -57,7 +56,6 @@ app.get('/admin-ajax.php', async (req, res) => {
     await KV.findOneAndUpdate({ key: cacheKey }, { value: body }, { upsert: true });
 
     // return the response
-    console.log('Sending fresh value');
     res.append('X-Ricky-Cache', 'miss');
     res.send(body);
   }
@@ -66,6 +64,6 @@ app.get('/admin-ajax.php', async (req, res) => {
 // set port, listen for requests
 const PORT = process.env.NODE_DOCKER_PORT || 5050;
 app.listen(PORT, async () => {
-  console.log(`Example app listening on port ${PORT}`);
+  console.log(`Cache listening on port ${PORT}`);
   await database.connect();
 });
