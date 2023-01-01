@@ -24,7 +24,7 @@ module.exports =
       },
       storedAt: {
         type: Date,
-        expires: 30,
+        expires: 86400,
         default: Date.now,
       },
     })
