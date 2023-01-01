@@ -42,24 +42,29 @@ app.get('/admin-ajax.php', async (req, res) => {
     res.append('X-Ricky-Cache', 'HIT');
     res.send(cachedObject.value);
   } else {
-    // fetch the API
-    const response = await fetch('https://teste.carrismetropolitana.pt/wp-admin/admin-ajax.php?' + cacheKey, {
-      headers: {
-        'content-type': 'application/json;charset=UTF-8',
-      },
-    });
+    try {
+      // fetch the API
+      const response = await fetch('https://teste.carrismetropolitana.pt/wp-admin/admin-ajax.php?' + cacheKey, {
+        headers: {
+          'content-type': 'application/json;charset=UTF-8',
+        },
+      });
 
-    let body = await response.json();
-    delete body.sql;
-    body = JSON.stringify(body);
+      let body = await response.json();
+      delete body.sql;
+      body = JSON.stringify(body);
 
-    // Save to cache
-    await KV.findOneAndUpdate({ key: cacheKey }, { value: body }, { upsert: true });
+      // Save to cache
+      await KV.findOneAndUpdate({ key: cacheKey }, { value: body }, { upsert: true });
 
-    // return the response
-    console.log('Cache MISS');
-    res.append('X-Ricky-Cache', 'MISS');
-    res.send(body);
+      // return the response
+      console.log('Cache MISS');
+      res.append('X-Ricky-Cache', 'MISS');
+      res.send(body);
+    } catch (err) {
+      console.log('Error: ', err);
+      res.status(500).send();
+    }
   }
 });
 
