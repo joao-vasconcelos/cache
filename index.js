@@ -38,7 +38,8 @@ app.get('/admin-ajax.php', async (req, res) => {
 
   if (cachedObject) {
     // If object is in cache
-    res.append('X-Ricky-Cache', 'hit');
+    console.log('Cache HIT');
+    res.append('X-Ricky-Cache', 'HIT');
     res.send(cachedObject.value);
   } else {
     // fetch the API
@@ -56,7 +57,8 @@ app.get('/admin-ajax.php', async (req, res) => {
     await KV.findOneAndUpdate({ key: cacheKey }, { value: body }, { upsert: true });
 
     // return the response
-    res.append('X-Ricky-Cache', 'miss');
+    console.log('Cache MISS');
+    res.append('X-Ricky-Cache', 'MISS');
     res.send(body);
   }
 });
