@@ -62,7 +62,10 @@ app.get('/admin-ajax.php', async (req, res) => {
       res.append('X-Ricky-Cache', 'MISS');
       res.send(body);
     } catch (err) {
-      console.log('Error: ', err);
+      console.log('- - - Error - - -');
+      console.log('At key:', cacheKey);
+      console.log(err);
+      console.log('- - - Error - - -');
       res.status(500).send();
     }
   }
