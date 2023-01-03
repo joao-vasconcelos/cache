@@ -44,7 +44,7 @@ app.get('/admin-ajax.php', async (req, res) => {
   } else {
     try {
       // fetch the API
-      const response = await fetch('https://teste.carrismetropolitana.pt/wp-admin/admin-ajax.php?' + cacheKey, {
+      const response = await fetch('https://horarios.carrismetropolitana.pt/wp-admin/admin-ajax.php?' + cacheKey, {
         headers: {
           'content-type': 'application/json;charset=UTF-8',
         },
