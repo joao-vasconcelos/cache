@@ -71,6 +71,32 @@ app.get('/admin-ajax.php', async (req, res) => {
   }
 });
 
+//// PURGE CACHE
+app.get('/purge/', async (req, res) => {
+  //
+  // Filter bad characters
+  for (let key in req.query) {
+    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%:-]/g, '');
+  }
+
+  const cacheKey = new URLSearchParams(req.query).toString();
+
+  // Get cache object from query
+  const cachedObject = await KV.findOneAndDelete({ key: cacheKey });
+
+  if (cachedObject) {
+    // If object is in cache
+    console.log('PURGE REQUEST:', cacheKey);
+    res.append('X-Ricky-Cache', 'PURGE');
+    res.send(cachedObject);
+  } else {
+    // return the response
+    console.log('PURGE REQUEST:', cacheKey);
+    res.append('X-Ricky-Cache', 'PURGE');
+    res.send({ key: cacheKey, value: null });
+  }
+});
+
 // set port, listen for requests
 const PORT = process.env.NODE_DOCKER_PORT || 5050;
 app.listen(PORT, async () => {
