@@ -86,13 +86,35 @@ app.get('/purge', async (req, res) => {
 
   if (cachedObject) {
     // If object is in cache
-    console.log('PURGE REQUEST:', cacheKey);
+    console.log('Cache PURGE:', cacheKey);
     res.append('X-Ricky-Cache', 'PURGE');
     res.send(cachedObject);
   } else {
     // return the response
-    console.log('PURGE REQUEST:', cacheKey);
+    console.log('Cache PURGE:', cacheKey);
     res.append('X-Ricky-Cache', 'PURGE');
+    res.send({ key: cacheKey, value: null });
+  }
+});
+
+//// INSPECT CACHE
+app.get('/inspect', async (req, res) => {
+  //
+
+  const cacheKey = new URLSearchParams(req.query).toString();
+
+  // Get cache object from query
+  const cachedObject = await KV.findOne({ key: cacheKey });
+
+  if (cachedObject) {
+    // If object is in cache
+    console.log('Cache INSPECT:', cacheKey);
+    res.append('X-Ricky-Cache', 'INSPECT');
+    res.send(cachedObject);
+  } else {
+    // return the response
+    console.log('Cache INSPECT:', cacheKey);
+    res.append('X-Ricky-Cache', 'INSPECT');
     res.send({ key: cacheKey, value: null });
   }
 });
