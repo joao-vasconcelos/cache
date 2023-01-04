@@ -72,12 +72,12 @@ app.get('/admin-ajax.php', async (req, res) => {
 });
 
 //// PURGE CACHE
-app.get('/purge/', async (req, res) => {
+app.get('/purge', async (req, res) => {
   //
   // Filter bad characters
-  for (let key in req.query) {
-    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%:-]/g, '');
-  }
+  // for (let key in req.query) {
+  //   req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%:-]/g, '');
+  // }
 
   const cacheKey = new URLSearchParams(req.query).toString();
 
