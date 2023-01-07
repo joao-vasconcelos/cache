@@ -17,7 +17,7 @@ app.get('/admin-ajax.php', async (req, res) => {
 
   // Filter bad characters
   for (let key in req.query) {
-    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%:-]/g, '');
+    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%: -]/g, '');
   }
 
   res.set({
@@ -44,7 +44,7 @@ app.get('/admin-ajax.php', async (req, res) => {
   } else {
     try {
       // fetch the API
-      const response = await fetch('https://horarios.carrismetropolitana.pt/wp-admin/admin-ajax.php?' + cacheKey, {
+      const response = await fetch('https://horarios.carrismetropolitana.pt/?' + cacheKey, {
         headers: {
           'content-type': 'application/json;charset=UTF-8',
         },
@@ -75,9 +75,9 @@ app.get('/admin-ajax.php', async (req, res) => {
 app.get('/purge', async (req, res) => {
   //
   // Filter bad characters
-  // for (let key in req.query) {
-  //   req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%:-]/g, '');
-  // }
+  for (let key in req.query) {
+    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%: -]/g, '');
+  }
 
   const cacheKey = new URLSearchParams(req.query).toString();
 
@@ -97,9 +97,32 @@ app.get('/purge', async (req, res) => {
   }
 });
 
+//// PURGE ALL CACHE
+app.get('/purgeAllCache', async (req, res) => {
+  //
+  // Get cache object from query
+  const cachedObject = await KV.deleteMany({});
+
+  if (cachedObject) {
+    // If object is in cache
+    console.log('Cache PURGE:', 'ALL');
+    res.append('X-Ricky-Cache', 'PURGE ALL');
+    res.send(cachedObject);
+  } else {
+    // return the response
+    console.log('Cache PURGE:', cacheKey);
+    res.append('X-Ricky-Cache', 'PURGE');
+    res.send({ key: cacheKey, value: null });
+  }
+});
+
 //// INSPECT CACHE
 app.get('/inspect', async (req, res) => {
   //
+  // Filter bad characters
+  for (let key in req.query) {
+    req.query[key] = req.query[key].replace(/[^a-zA-Z0-9_%: -]/g, '');
+  }
 
   const cacheKey = new URLSearchParams(req.query).toString();
 
