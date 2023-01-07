@@ -12,7 +12,7 @@ const app = express();
 const database = require('./database');
 const KV = require('./KV');
 
-app.get('/', async (req, res) => {
+app.get('/get', async (req, res) => {
   //
 
   // Filter bad characters
